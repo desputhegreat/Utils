@@ -2,8 +2,7 @@ import socket
 import hashlib
 import json
 
-def auth_client(sock):
-    user = input("Please enter your username: ")
+def auth_client(sock, user):
     while True:    
         sock.send(user.encode())
         responce = sock.recv(1024).decode()
