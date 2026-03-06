@@ -1,8 +1,8 @@
 #server
 import socket
 import threading
+import auth
 import json
-import hashlib
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 adr = ("127.0.0.1", 5000)
@@ -17,35 +17,12 @@ json_dir = "C:/VsCode/Utils/Chater/data/users.json"
 with open(json_dir, "r") as file:
     users = json.load(file)
 
-def auth(client_socket):
-    while True:    
-        user = client_socket.recv(1024).decode()
-        if user in users:
-            msg = "Login"
-            client_socket.send(msg.encode())
-            password = client_socket.recv(1024)
-            if hashlib.sha256(password).hexdigest() == users[user]:
-                msg = "Logged in"
-                client_socket.send(msg.encode())
-                break
-            else:
-                msg = "Incorrect"
-                client_socket.send(msg.encode())
-                password = client_socket.recv(1024)
-        else:
-            msg = "Register"
-            client_socket.send(msg.encode()) 
-            password = client_socket.recv(1024)
-            users[user] = hashlib.sha256(password).hexdigest()
-            with open(json_dir, "w") as file:
-                json.dump(users, file, indent=4)
-            break
 
 def accepter():
     while True:    
         client_socket, _ = server.accept()
         clients.append(client_socket)
-        auth(client_socket)
+        auth.auth_server(client_socket, users, json_dir)
         client_thread = threading.Thread(target=recv_brod, args=(client_socket,)) 
         client_thread.start()
 
