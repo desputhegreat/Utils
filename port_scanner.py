@@ -14,6 +14,9 @@ while True:
         min_range = min(int(port_range[0]), int(port_range[1])) #gets lower limit of port range
         max_range = max(int(port_range[0]), int(port_range[1]))+1 #gets upper limit of port range
         
+        if max_range > 65535 or min_range < 1: #checks if port is in valid range
+            raise ValueError
+        
         #puts each port from the port_range into ports
         for port in range(min_range, max_range):
             ports.append(port) 
@@ -39,7 +42,7 @@ def worker():
         sock.settimeout(1) #sets the timeout for the socket 1 seconds
         #tries to connect to the server and handles some errors accordingly
         try:
-            sock.connect((server, int(port)))
+            sock.connect((server, port))
             results.append(f"Port {port}: OPEN")
         except ConnectionError:
             results.append(f"Port {port}: CLOSED")
