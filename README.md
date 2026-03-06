@@ -24,4 +24,4 @@ Organizes messy folders by moving files into categorized subfolders based on ext
 * **Logic:** Custom extension-parsing that handles complex filenames.
 
 ---
-*Created by a beginner Python developer exploring the power of standard libraries.*
+*Created by a beginner Python developer*
