@@ -6,14 +6,22 @@ import queue
 #user input
 server = input("Enter the IPV4/Domain Address to connect: ") 
 port_range = input("Enter the port range (x-y): ") 
-
 port_range = port_range.split("-") #splits the port range into a list
-
 ports = [] #ports will be stored in this
 
-#puts each port from the port range into ports
-for port in range(int(port_range[0]), int(port_range[1]) + 1):
-    ports.append(port)                                        
+while True:
+    try:   
+        min_range = min(int(port_range[0]), int(port_range[1])) #gets lower limit of port range
+        max_range = max(int(port_range[0]), int(port_range[1]))+1 #gets upper limit of port range
+        
+        #puts each port from the port_range into ports
+        for port in range(min_range, max_range):
+            ports.append(port) 
+        break    
+    
+    except ValueError: #error handeling for invalid values
+        port_range = input("Invalid Port range. Please Try again (x-y): ") 
+        port_range = port_range.split("-") #splits the port range into a list                                       
 
 ports_queue = queue.Queue() #creates a queue
 
