@@ -3,6 +3,7 @@ import socket
 import threading
 from auth import auth_server
 import json
+import os
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 address = ("127.0.0.1", 5000)
@@ -13,7 +14,7 @@ print("Waiting for connections...")
 server.listen()
 clients = []
 
-json_dir = "data/users.json"
+json_dir = os.path.join(os.path.dirname(__file__), "data", "users.json")
 
 with open(json_dir, "r") as file:
     users = json.load(file)
@@ -25,7 +26,7 @@ def accepter():
         auth_server(client_socket, users, json_dir)
         client_thread = threading.Thread(target=reciver, args=(client_socket,)) 
         client_thread.start()
-        
+
 def reciver(client):
     while True:
         try:    
