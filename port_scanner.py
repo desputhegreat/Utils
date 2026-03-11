@@ -33,10 +33,12 @@ ports_queue = queue.Queue()  # creates a queue
 for port in ports:
     ports_queue.put(port) # puts the ports into the ports_queue one by one
 
-results = []  # results will be stored in this
+# results will be stored in these
+closed_ports = []  
 open_ports = []
+other_ports = []
+timeout_ports = []
 # target for each thread
-
 
 def worker():
     # gets the port from ports_queue and calls connect function until the queue is empty
@@ -53,18 +55,18 @@ def connect(port):
         sock.connect((server, port))
         open_ports.append(f"Port {port}: OPEN")
     except ConnectionError:
-        results.append(f"Port {port}: CLOSED")
+        closed_ports.append(f"Port {port}: CLOSED")
     except TimeoutError:
-        results.append(f"Port {port}: TIMEOUT")
+        timeout_ports.append(f"Port {port}: TIMEOUT")
     except Exception as e:
-        results.append(f"Port {port}: {e}")
+        other_ports.append(f"Port {port}: {e}")
     finally:
         sock.close()  # closes the socket
         ports_queue.task_done()  # marks the task done
 
 
 # calculates the total number of threads to be created
-thread_count = min(100, len(ports))
+thread_count = min(50, len(ports))
 
 # creates the total number of threads based on thread count with target=worker and starts them
 threads = [threading.Thread(target=worker) for _ in range(0,thread_count)]
@@ -73,7 +75,8 @@ for thread in threads: thread.start()
 ports_queue.join()  # waits until each port is marked done
 
 # prints the results
-for result in open_ports:
-    print(result)
-
+for port in open_ports: print(port)
+for port in closed_ports: print(port)
+for port in timeout_ports: print(port)
+for port in other_ports: print(port)
 print("Wallah I'm finished!")
