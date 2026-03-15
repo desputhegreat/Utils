@@ -1,4 +1,8 @@
-#confirmation
+# modules
+import shutil
+import os
+
+# confirmation
 print("Note: Run as Administrator for full cleaning.\n")
 confirm = input("This will delete temp files. Continue? (y/n): ")
 
@@ -9,11 +13,8 @@ freed_space = 0
 file_count = 0
 folder_skipped = 0
 folder_count = 0
-#modules
-import os
-import shutil
 
-#directories
+# directories
 user = os.getlogin()
 folders = [
     # User temp
@@ -22,11 +23,11 @@ folders = [
     f"C:/Users/{user}/AppData/Local/Microsoft/Windows/INetCache",
     f"C:/Users/{user}/AppData/Local/Microsoft/Windows/Temporary Internet Files",
 
-    # Windows temp 
+    # Windows temp
     f"C:/Windows/Temp",
     f"C:/Windows/Prefetch",
 
-    # Software caches 
+    # Software caches
     f"C:/Users/{user}/AppData/Local/Packages",
 
     # Recycle Bin
@@ -34,7 +35,7 @@ folders = [
 ]
 
 for folder in folders:
-    #path verification and listing
+    # path verification and listing
     try:
         files = os.listdir(folder)
     except PermissionError:
@@ -43,9 +44,9 @@ for folder in folders:
         continue
     except FileNotFoundError:
         print(f"Folder not found, skipping: {folder}")
-        folder_skipped +=1 
-        continue    
-    #verfication and deletion
+        folder_skipped += 1
+        continue
+    # verfication and deletion
     for file in files:
         file_path = os.path.join(folder, file)
         try:
@@ -53,7 +54,7 @@ for folder in folders:
                 size = os.path.getsize(file_path)
                 os.remove(file_path)
                 freed_space += size
-                file_count +=1
+                file_count += 1
             else:
                 size = os.path.getsize(file_path)
                 shutil.rmtree(file_path)
@@ -67,8 +68,8 @@ for folder in folders:
         except (OSError):
             print(f"Skipping (in use or locked): {file_path}")
         except Exception as e:
-            print(f"An error occurred: {e}")   
-print(f"Operation Completed.\nTotal size freed: {freed_space/1024**2} MB\nTotal Files deleted: {file_count}\nFolder deleted: {folder_count}\nFolder skipped: {folder_skipped}")
+            print(f"An error occurred: {e}")
+
+print(
+    f"Operation Completed.\nTotal size freed: {(freed_space/1024**2):.2f} MB\nTotal Files deleted: {file_count}\nFolder deleted: {folder_count}\nFolder skipped: {folder_skipped}")
 print("Press enter to exit."), input()
-
-
