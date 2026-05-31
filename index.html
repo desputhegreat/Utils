@@ -1,29 +1,578 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hehe</title>
-  <style>
-    body {
-      background-color: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanskrit Study Guide Generator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Sanskrit:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 
-    h1 {
-      color: white;
-      font-family: Arial, sans-serif;
-      font-size: 2.5rem;
-      text-align: center;
-      padding: 0 20px;
-    }
-  </style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F4EE;
+  --surface:#FFFFFF;
+  --surface2:#F0EDE6;
+  --border:#E2DDD4;
+  --text:#1A1714;
+  --text2:#6B6560;
+  --text3:#9E9890;
+  --accent:#C4531A;
+  --accent-bg:#FDF0EA;
+  --accent-border:#EEC5AD;
+  --green:#2A7A4B;
+  --green-bg:#EAF5EE;
+  --blue:#1B5FA8;
+  --blue-bg:#EAF1FB;
+  --amber:#8B5E00;
+  --amber-bg:#FEF4DC;
+}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh}
+
+/* Upload screen */
+#upload-screen{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;
+}
+.app-title{
+  font-family:'Tiro Devanagari Sanskrit',serif;
+  font-size:2.2rem;font-weight:400;letter-spacing:-0.01em;
+  color:var(--text);margin-bottom:0.3rem;text-align:center;
+}
+.app-sub{font-size:14px;color:var(--text2);margin-bottom:2.5rem;text-align:center}
+
+.upload-zone{
+  width:100%;max-width:480px;
+  border:1.5px dashed var(--border);
+  border-radius:16px;background:var(--surface);
+  padding:2.5rem 2rem;text-align:center;cursor:pointer;
+  transition:border-color 0.2s,background 0.2s;
+  position:relative;
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-bg)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:2.5rem;margin-bottom:0.75rem}
+.upload-main{font-size:15px;font-weight:500;color:var(--text);margin-bottom:0.4rem}
+.upload-hint{font-size:13px;color:var(--text3)}
+.file-chosen{
+  margin-top:1.5rem;padding:10px 16px;border-radius:10px;
+  background:var(--accent-bg);border:1px solid var(--accent-border);
+  font-size:13px;color:var(--accent);font-weight:500;display:none;
+}
+.gen-btn{
+  margin-top:1.5rem;width:100%;max-width:480px;
+  padding:13px;border-radius:12px;
+  background:var(--text);color:#fff;
+  font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;
+  border:none;cursor:pointer;transition:opacity 0.15s,transform 0.1s;
+  display:none;
+}
+.gen-btn:hover{opacity:0.88}
+.gen-btn:active{transform:scale(0.98)}
+.gen-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* Progress */
+#progress-screen{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;padding:2rem}
+.progress-title{font-family:'Tiro Devanagari Sanskrit',serif;font-size:1.5rem;margin-bottom:2rem;color:var(--text)}
+.progress-steps{width:100%;max-width:400px}
+.step{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--text2)}
+.step:last-child{border-bottom:none}
+.step-dot{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all 0.3s}
+.step.done .step-dot{background:var(--green);border-color:var(--green);color:#fff}
+.step.active .step-dot{background:var(--accent);border-color:var(--accent);animation:pulse 1s infinite}
+.step.done,.step.active{color:var(--text)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* Guide screen */
+#guide-screen{display:none;padding:1.5rem;max-width:860px;margin:0 auto}
+.guide-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px}
+.guide-title{font-family:'Tiro Devanagari Sanskrit',serif;font-size:1.6rem;font-weight:400;color:var(--text)}
+.back-btn{font-size:13px;color:var(--text2);cursor:pointer;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);transition:background 0.15s}
+.back-btn:hover{background:var(--surface2)}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:0.75rem}
+.tab{padding:7px 14px;border-radius:8px;border:1px solid var(--border);font-size:13px;cursor:pointer;background:var(--surface);color:var(--text2);font-family:'DM Sans',sans-serif;transition:all 0.15s;white-space:nowrap}
+.tab:hover{background:var(--surface2)}
+.tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+
+/* Content */
+.section{display:none}.section.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:12px;overflow-x:auto}
+.section-label{font-size:11px;font-weight:500;letter-spacing:0.08em;color:var(--text3);text-transform:uppercase;margin:1.5rem 0 0.75rem}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;color:var(--text3);font-weight:500;padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.skt{font-family:'Tiro Devanagari Sanskrit',serif;font-size:16px}
+.sub{font-size:12px;color:var(--text2)}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;white-space:nowrap}
+.tag-b{background:var(--blue-bg);color:var(--blue)}
+.tag-g{background:var(--green-bg);color:var(--green)}
+.tag-a{background:var(--amber-bg);color:var(--amber)}
+.tag-r{background:#FCEAEA;color:#A02020}
+
+/* MCQ */
+.q-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:12px}
+.q-text{font-size:15px;line-height:1.6;margin-bottom:4px;font-family:'Tiro Devanagari Sanskrit',serif}
+.q-hint{font-size:12px;color:var(--text3);font-family:'DM Sans',sans-serif;margin-bottom:12px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.opt-btn:hover:not(:disabled){background:var(--accent-bg);border-color:var(--accent-border)}
+.opt-btn.correct{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.opt-btn.wrong{background:#FCEAEA;border-color:#E5AAAA;color:#A02020}
+.opt-btn:disabled{cursor:default}
+.reveal{display:none;margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--surface2);font-size:13px;line-height:1.5;color:var(--text2);border-left:3px solid var(--accent)}
+textarea.ta{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;resize:vertical;min-height:65px;background:var(--surface2);color:var(--text);margin-bottom:8px}
+textarea.ta:focus{outline:none;border-color:var(--accent)}
+.check-btn{padding:7px 16px;border-radius:8px;border:1px solid var(--accent-border);background:var(--accent-bg);color:var(--accent);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* Score */
+.score-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:1rem;font-size:14px;color:var(--text2)}
+.score-val{font-size:18px;font-weight:500;color:var(--text)}
+
+/* Time */
+.time-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:1rem 0}
+.time-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center}
+.time-num{font-size:22px;font-weight:500;color:var(--text);font-variant-numeric:tabular-nums}
+.time-lbl{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.4}
+.priority-list{display:flex;flex-direction:column;gap:8px;margin-top:1rem}
+.priority-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-size:13px}
+.p-num{font-size:11px;font-weight:500;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Error */
+.error-box{background:#FCEAEA;border:1px solid #E5AAAA;border-radius:10px;padding:1rem;font-size:14px;color:#8B2020;margin-top:1rem}
+
+/* Loading skeleton */
+.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;height:14px;margin:6px 0}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
 </head>
 <body>
-  <h1>I just wasted your time using Python hehhe 😜</h1>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="app-title">संस्कृत अध्ययन सहायक</div>
+  <div class="app-sub">Sanskrit Chapter Study Guide Generator · Class 9</div>
+
+  <div class="upload-zone" id="drop-zone">
+    <input type="file" id="file-input" accept=".pdf,.zip">
+    <div class="upload-icon">📄</div>
+    <div class="upload-main">Drop your chapter PDF here</div>
+    <div class="upload-hint">or click to browse — PDF or ZIP of images</div>
+  </div>
+  <div class="file-chosen" id="file-chosen">✓ <span id="file-name"></span></div>
+
+  <button class="gen-btn" id="gen-btn" onclick="generate()">Generate Study Guide →</button>
+  <div class="error-box" id="err-box" style="display:none;max-width:480px;margin-top:1rem"></div>
+</div>
+
+<!-- PROGRESS SCREEN -->
+<div id="progress-screen" style="display:none;min-height:100vh;display:none;align-items:center;justify-content:center;flex-direction:column;padding:2rem">
+  <div class="progress-title">Generating your study guide…</div>
+  <div class="progress-steps" id="steps">
+    <div class="step" id="s1"><div class="step-dot" id="d1">1</div><span>Reading chapter content</span></div>
+    <div class="step" id="s2"><div class="step-dot" id="d2">2</div><span>Extracting shabdaarth & vocab</span></div>
+    <div class="step" id="s3"><div class="step-dot" id="d3">3</div><span>Identifying dhatu & pratyay</span></div>
+    <div class="step" id="s4"><div class="step-dot" id="d4">4</div><span>Analysing samas & shabdroop</span></div>
+    <div class="step" id="s5"><div class="step-dot" id="d5">5</div><span>Building anuwad practice</span></div>
+    <div class="step" id="s6"><div class="step-dot" id="d6">6</div><span>Finalising study plan</span></div>
+  </div>
+</div>
+
+<!-- GUIDE SCREEN -->
+<div id="guide-screen">
+  <div class="guide-header">
+    <div class="guide-title" id="guide-chapter-name">Chapter Study Guide</div>
+    <button class="back-btn" onclick="reset()">← New Chapter</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('words')">📚 Shabdaarth</button>
+    <button class="tab" onclick="showTab('dhatu')">🔧 Dhatu</button>
+    <button class="tab" onclick="showTab('shabdroop')">📝 Shabdroop</button>
+    <button class="tab" onclick="showTab('pratyay')">🔗 Pratyay & Upsarg</button>
+    <button class="tab" onclick="showTab('samas')">🧩 Samas</button>
+    <button class="tab" onclick="showTab('anuwad')">✍️ Anuwad</button>
+    <button class="tab" onclick="showTab('time')">⏱ Study Plan</button>
+  </div>
+
+  <div id="words" class="section active"><div class="card"><div class="skeleton" style="width:60%"></div><div class="skeleton" style="width:80%"></div><div class="skeleton" style="width:70%"></div></div></div>
+  <div id="dhatu" class="section"><div class="card"><div class="skeleton" style="width:60%"></div></div></div>
+  <div id="shabdroop" class="section"><div class="card"><div class="skeleton" style="width:60%"></div></div></div>
+  <div id="pratyay" class="section"><div class="card"><div class="skeleton" style="width:60%"></div></div></div>
+  <div id="samas" class="section"><div class="card"><div class="skeleton" style="width:60%"></div></div></div>
+  <div id="anuwad" class="section"><div class="card"><div class="skeleton" style="width:60%"></div></div></div>
+  <div id="time" class="section"><div class="card"><div class="skeleton" style="width:60%"></div></div></div>
+</div>
+
+<script>
+let fileData = null;
+let fileType = null;
+let scores = {correct:0, total:0};
+
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('drop-zone');
+const fileChosen = document.getElementById('file-chosen');
+const fileNameEl = document.getElementById('file-name');
+const genBtn = document.getElementById('gen-btn');
+const errBox = document.getElementById('err-box');
+
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
+
+function handleFile(file) {
+  if (!file) return;
+  fileData = file;
+  fileType = file.type;
+  fileNameEl.textContent = file.name;
+  fileChosen.style.display = 'block';
+  genBtn.style.display = 'block';
+  errBox.style.display = 'none';
+}
+
+function setStep(n, state) {
+  const s = document.getElementById('s'+n);
+  const d = document.getElementById('d'+n);
+  s.className = 'step ' + state;
+  d.textContent = state === 'done' ? '✓' : n;
+}
+
+async function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+async function generate() {
+  errBox.style.display = 'none';
+  genBtn.disabled = true;
+
+  // Show progress
+  document.getElementById('upload-screen').style.display = 'none';
+  const ps = document.getElementById('progress-screen');
+  ps.style.display = 'flex';
+
+  setStep(1, 'active');
+
+  let chapterText = '';
+  let imagePages = [];
+
+  try {
+    // Handle ZIP (our chapter format with images + txt files)
+    if (fileData.name.endsWith('.zip') || fileData.type === 'application/zip' || fileData.type === 'application/x-zip-compressed') {
+      const JSZip = (await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm')).default;
+      const zip = await JSZip.loadAsync(fileData);
+      const txts = Object.keys(zip.files).filter(n => n.endsWith('.txt') && !n.includes('manifest')).sort();
+      const imgs = Object.keys(zip.files).filter(n => /\.(jpe?g|png)$/i.test(n)).sort();
+
+      for (const name of txts) {
+        chapterText += await zip.files[name].async('string') + '\n';
+      }
+
+      // If we have images, pick up to 4 representative ones for visual context
+      const imgNames = imgs.slice(0, 4);
+      for (const name of imgNames) {
+        const blob = await zip.files[name].async('blob');
+        const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result.split(',')[1]); fr.readAsDataURL(blob); });
+        imagePages.push({ b64, mime: blob.type || 'image/jpeg' });
+      }
+    } else {
+      // PDF
+      const b64 = await fileToBase64(fileData);
+      imagePages.push({ b64, mime: 'application/pdf' });
+    }
+
+    setStep(1, 'done'); setStep(2, 'active');
+
+    // Build message content
+    const contentParts = [];
+
+    if (chapterText.trim()) {
+      contentParts.push({ type: 'text', text: 'Here is the extracted text from the Sanskrit chapter:\n\n' + chapterText });
+    }
+    for (const img of imagePages) {
+      if (img.mime === 'application/pdf') {
+        contentParts.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: img.b64 } });
+      } else {
+        contentParts.push({ type: 'image', source: { type: 'base64', media_type: img.mime, data: img.b64 } });
+      }
+    }
+
+    contentParts.push({ type: 'text', text: `Analyse this Sanskrit chapter (Class 9, NCERT / state board level) and return ONLY a valid JSON object — no markdown, no backticks, no preamble.
+
+The JSON must have exactly this structure:
+{
+  "chapterName": "title of poem/chapter in Sanskrit/Hindi",
+  "words": [
+    {"skt": "Sanskrit word", "hindi": "Hindi meaning", "english": "English meaning", "type": "gender/POS tag like पुं/स्त्री/नपं/विशेषण/अव्यय", "note": "optional grammar note or etymology"}
+  ],
+  "dhatu": [
+    {"dhatu": "√root", "arth": "meaning", "example": "example word from chapter", "conjugation": "present tense pr.pu. all 3 vachan like X / Y / Z"}
+  ],
+  "shabdroop": [
+    {"word": "Sanskrit word", "gender": "पुं/स्त्री/नपं", "ending": "ending type e.g. अकारान्त", "table": {"prathamaa":["ek","dwi","bahu"], "dviteeyaa":["ek","dwi","bahu"], "triteeyaa":["ek","dwi","bahu"], "chaturthi":["ek","dwi","bahu"], "panchamee":["ek","dwi","bahu"], "shashthee":["ek","dwi","bahu"], "saptamee":["ek","dwi","bahu"], "sambodhan":["ek","dwi","bahu"]}}
+  ],
+  "upsarg": [
+    {"upsarg": "prefix", "arth": "meaning", "example": "example from chapter", "change": "how it changes meaning"}
+  ],
+  "pratyay": [
+    {"pratyay": "suffix", "type": "कृत्/तद्धित/etc", "arth": "function", "example": "example from chapter"}
+  ],
+  "samas": [
+    {"samastpad": "compound", "vigrah": "विग्रह", "type": "samas type"}
+  ],
+  "anuwad": [
+    {"type": "mcq", "q": "question in Sanskrit/Hindi", "hint": "English hint", "options": ["opt1","opt2","opt3","opt4"], "ans": 0, "explain": "explanation"},
+    {"type": "translate", "q": "translate this sentence", "hint": "key word hints", "ans": "model answer", "explain": "explanation"}
+  ],
+  "timeplan": [
+    {"task": "task name", "minutes": 30},
+    ...
+  ],
+  "priority": ["highest priority topic", "second", "third", "fourth", "fifth", "sixth"]
+}
+
+Rules:
+- words: include ALL important vocabulary — both frequent AND contextually/grammatically significant ones. Include rare but exam-relevant words too. Minimum 25 words, ideally 35+.
+- shabdroop: pick 3 most important/recurring words covering at least 2 different genders and ending types.
+- anuwad: 8 questions alternating mcq and translate.
+- timeplan: realistic per-task minutes, 7-9 tasks.
+- All Sanskrit text must be in proper Devanagari script.
+- Return ONLY the JSON. No explanation outside it.`
+    });
+
+    setTimeout(() => { setStep(2, 'done'); setStep(3, 'active'); }, 800);
+    setTimeout(() => { setStep(3, 'done'); setStep(4, 'active'); }, 1800);
+    setTimeout(() => { setStep(4, 'done'); setStep(5, 'active'); }, 2800);
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: contentParts }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'API error ' + response.status);
+    }
+
+    const data = await response.json();
+    const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+
+    setStep(5, 'done'); setStep(6, 'active');
+
+    // Parse JSON — strip any accidental markdown fences
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    const guide = JSON.parse(cleaned);
+
+    setStep(6, 'done');
+
+    await new Promise(r => setTimeout(r, 400));
+
+    renderGuide(guide);
+
+  } catch (e) {
+    ps.style.display = 'none';
+    document.getElementById('upload-screen').style.display = 'flex';
+    errBox.textContent = 'Error: ' + e.message;
+    errBox.style.display = 'block';
+    genBtn.disabled = false;
+  }
+}
+
+function renderGuide(g) {
+  document.getElementById('progress-screen').style.display = 'none';
+  const gs = document.getElementById('guide-screen');
+  gs.style.display = 'block';
+  document.getElementById('guide-chapter-name').textContent = g.chapterName || 'Study Guide';
+  scores = {correct:0, total:0};
+
+  // WORDS
+  document.getElementById('words').innerHTML = `
+    <div class="card">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px">All important & frequent vocabulary — recurring words, exam-relevant terms, and grammatically significant ones.</p>
+      <table>
+        <thead><tr><th>Sanskrit</th><th>Hindi Meaning</th><th>English</th><th>Type</th><th>Note</th></tr></thead>
+        <tbody>${g.words.map(w=>`
+          <tr>
+            <td class="skt">${w.skt}</td>
+            <td>${w.hindi}</td>
+            <td>${w.english}</td>
+            <td><span class="tag tag-b">${w.type}</span></td>
+            <td class="sub">${w.note||''}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  // DHATU
+  document.getElementById('dhatu').innerHTML = `
+    <div class="card">
+      <table>
+        <thead><tr><th>धातु</th><th>अर्थ</th><th>Chapter Example</th><th>लट् लकार (प्र.पु. ए/द्वि/बहु)</th></tr></thead>
+        <tbody>${g.dhatu.map(d=>`
+          <tr>
+            <td class="skt">${d.dhatu}</td>
+            <td>${d.arth}</td>
+            <td class="skt">${d.example}</td>
+            <td class="skt sub">${d.conjugation}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent)">
+      <p style="font-size:14px;line-height:1.7;color:var(--text)">
+        <strong>Quick trick:</strong> Words ending in <span class="skt">-कम्, -दम्, -करः</span> almost always contain a hidden धातु. 
+        Spotting the root helps you decode unfamiliar compounds in the exam.
+      </p>
+    </div>`;
+
+  // SHABDROOP
+  const vibhaktiNames = ['प्रथमा','द्वितीया','तृतीया','चतुर्थी','पञ्चमी','षष्ठी','सप्तमी','सम्बोधन'];
+  const vibhaktiKeys = ['prathamaa','dviteeyaa','triteeyaa','chaturthi','panchamee','shashthee','saptamee','sambodhan'];
+  let srHTML = '';
+  (g.shabdroop||[]).forEach((sr,i) => {
+    srHTML += `<div class="section-label">${i+1}. ${sr.word} — ${sr.gender} (${sr.ending})</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>विभक्ति</th><th>एकवचन</th><th>द्विवचन</th><th>बहुवचन</th></tr></thead>
+        <tbody>${vibhaktiNames.map((name,j)=>{
+          const k = vibhaktiKeys[j];
+          const row = sr.table[k] || ['—','—','—'];
+          return `<tr><td style="color:var(--text2);font-size:13px">${name}</td><td class="skt">${row[0]||'—'}</td><td class="skt">${row[1]||'—'}</td><td class="skt">${row[2]||'—'}</td></tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  });
+  document.getElementById('shabdroop').innerHTML = srHTML;
+
+  // PRATYAY & UPSARG
+  document.getElementById('pratyay').innerHTML = `
+    <div class="section-label">उपसर्ग (Prefixes)</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>उपसर्ग</th><th>अर्थ</th><th>Example from chapter</th><th>Effect on meaning</th></tr></thead>
+        <tbody>${(g.upsarg||[]).map(u=>`
+          <tr><td class="skt">${u.upsarg}</td><td>${u.arth}</td><td class="skt">${u.example}</td><td class="sub">${u.change}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="section-label">प्रत्यय (Suffixes)</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>प्रत्यय</th><th>प्रकार</th><th>Function</th><th>Example</th></tr></thead>
+        <tbody>${(g.pratyay||[]).map(p=>`
+          <tr><td class="skt">${p.pratyay}</td><td><span class="tag tag-a">${p.type}</span></td><td>${p.arth}</td><td class="skt">${p.example}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  // SAMAS
+  document.getElementById('samas').innerHTML = `
+    <div class="card">
+      <table>
+        <thead><tr><th>समस्त पद</th><th>विग्रह</th><th>समास</th></tr></thead>
+        <tbody>${(g.samas||[]).map(s=>`
+          <tr><td class="skt">${s.samastpad}</td><td class="skt">${s.vigrah}</td><td><span class="tag tag-b">${s.type}</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  // ANUWAD
+  let anuwadHTML = `<div class="score-row">🏆 Score: <span class="score-val" id="score-disp">0 / 0</span></div>`;
+  (g.anuwad||[]).forEach((q,i) => {
+    if (q.type === 'mcq') {
+      anuwadHTML += `<div class="q-box">
+        <div class="q-text">${i+1}. ${q.q}</div>
+        <div class="q-hint">${q.hint||''}</div>
+        <div class="opts" id="opts-${i}">${(q.options||[]).map((o,j)=>`<button class="opt-btn" onclick="checkMCQ(${i},${j},${q.ans},'${escQ(q.explain||'')}')">${o}</button>`).join('')}</div>
+        <div class="reveal" id="rev-${i}">${q.explain||''}</div>
+      </div>`;
+    } else {
+      anuwadHTML += `<div class="q-box">
+        <div class="q-text">${i+1}. ${q.q}</div>
+        <div class="q-hint">${q.hint||''}</div>
+        <textarea class="ta" id="ta-${i}" placeholder="Type your answer…"></textarea>
+        <button class="check-btn" onclick="checkTranslate(${i},'${escQ(q.ans||'')}','${escQ(q.explain||'')}')">Check →</button>
+        <div class="reveal" id="rev-${i}"><strong>Model answer:</strong> ${q.ans||''}<br><br>${q.explain||''}</div>
+      </div>`;
+    }
+  });
+  document.getElementById('anuwad').innerHTML = anuwadHTML;
+
+  // TIME PLAN
+  const totalMins = (g.timeplan||[]).reduce((a,t)=>a+t.minutes,0);
+  const hrs = Math.floor(totalMins/60);
+  const mins = totalMins%60;
+  const colors = ['tag-r','tag-a','tag-a','tag-b','tag-g','tag-g','tag-g','tag-g'];
+  document.getElementById('time').innerHTML = `
+    <div class="time-grid">${(g.timeplan||[]).map(t=>`
+      <div class="time-card">
+        <div class="time-num">${t.minutes} min</div>
+        <div class="time-lbl">${t.task}</div>
+      </div>`).join('')}
+    </div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <span style="font-size:15px;font-weight:500">Total recommended time</span>
+      <span style="font-size:22px;font-weight:500;color:var(--accent)">${hrs > 0 ? hrs+'h ' : ''}${mins}min</span>
+    </div>
+    <div class="section-label">Priority order for exam</div>
+    <div class="priority-list">${(g.priority||[]).map((p,i)=>`
+      <div class="priority-item">
+        <span class="p-num ${colors[i]||'tag-g'}" style="background:var(--surface2)">${i+1}</span>
+        <span>${p}</span>
+      </div>`).join('')}
+    </div>`;
+}
+
+function escQ(s){ return s.replace(/'/g,"\\'").replace(/\n/g,' '); }
+
+function checkMCQ(qi, chosen, correct, explain) {
+  const btns = document.querySelectorAll('#opts-'+qi+' .opt-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[chosen].classList.add(chosen === correct ? 'correct' : 'wrong');
+  if (chosen !== correct) btns[correct].classList.add('correct');
+  scores.total++;
+  if (chosen === correct) scores.correct++;
+  document.getElementById('rev-'+qi).style.display = 'block';
+  document.getElementById('score-disp').textContent = scores.correct+' / '+scores.total;
+}
+
+function checkTranslate(qi, ans, explain) {
+  scores.total++;
+  document.getElementById('rev-'+qi).style.display = 'block';
+  document.getElementById('score-disp').textContent = scores.correct+' / '+scores.total;
+}
+
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map = {words:0,dhatu:1,shabdroop:2,pratyay:3,samas:4,anuwad:5,time:6};
+  document.querySelectorAll('.tab')[map[id]].classList.add('active');
+}
+
+function reset() {
+  fileData = null;
+  fileInput.value = '';
+  fileChosen.style.display = 'none';
+  genBtn.style.display = 'none';
+  genBtn.disabled = false;
+  document.getElementById('guide-screen').style.display = 'none';
+  document.getElementById('upload-screen').style.display = 'flex';
+  errBox.style.display = 'none';
+  [1,2,3,4,5,6].forEach(n => setStep(n,''));
+}
+</script>
 </body>
 </html>
